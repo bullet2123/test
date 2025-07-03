@@ -2,53 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protected Page</title>
-    <!-- Prevent search engines from tracking -->
-    <meta name="robots" content="noindex, nofollow">
-    
-    <!-- Security headers to prevent tracking -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self';">
-    <meta http-equiv="Referrer-Policy" content="no-referrer">
-    
+    <title>Incognito Detection</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
             text-align: center;
+            padding: 50px;
+            background-color: #f4f4f9;
         }
         h1 {
-            margin-top: 20%;
             color: #333;
+        }
+        .normal-mode {
+            color: green;
+        }
+        .incognito-mode {
+            color: red;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Working..!</h1>
-    
-    <!-- No external resources that could leak IP -->
+    <h1 id="status">Checking your browser mode...</h1>
+    <p id="message">Please wait while we verify.</p>
+    <button id="proceed" style="display: none;">Proceed Anyway</button>
+
     <script>
-        // Disable right-click to prevent some tracking attempts
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
-        
-        // Disable developer tools (basic protection)
-        document.onkeydown = function(e) {
-            if (e.keyCode == 123 || // F12
-                (e.ctrlKey && e.shiftKey && e.keyCode == 73) || // Ctrl+Shift+I
-                (e.ctrlKey && e.shiftKey && e.keyCode == 74) || // Ctrl+Shift+J
-                (e.ctrlKey && e.keyCode == 85)) { // Ctrl+U
+        // Function to detect Incognito Mode
+        async function detectIncognito() {
+            try {
+                // Method 1: Check FileSystem API (works in Chrome)
+                const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+                if (!fs) return false;
+
+                return await new Promise((resolve) => {
+                    fs(
+                        window.TEMPORARY,
+                        100,
+                        () => resolve(false),  // Not Incognito
+                        () => resolve(true)   // Incognito
+                    );
+                });
+            } catch (error) {
+                console.error("Detection failed:", error);
                 return false;
             }
-        };
+        }
+
+        // Main function
+        async function checkMode() {
+            const isIncognito = await detectIncognito();
+            const status = document.getElementById("status");
+            const message = document.getElementById("message");
+            const proceedBtn = document.getElementById("proceed");
+
+            if (isIncognito) {
+                status.textContent = "🔒 Incognito Mode Detected!";
+                status.className = "incognito-mode";
+                message.textContent = "This page may not work properly in private mode. Switch to normal mode for full functionality.";
+                
+                // Option 1: Redirect (uncomment if needed)
+                // setTimeout(() => {
+                //     window.location.href = "https://example.com/non-private-page";
+                // }, 3000);
+
+                // Option 2: Show a button to proceed
+                proceedBtn.style.display = "block";
+                proceedBtn.onclick = () => {
+                    message.textContent = "You chose to proceed in incognito mode. Some features may not work.";
+                    proceedBtn.style.display = "none";
+                };
+            } else {
+                status.textContent = "✅ Normal Mode Detected";
+                status.className = "normal-mode";
+                message.textContent = "You're browsing in normal mode. Enjoy the full experience!";
+            }
+        }
+
+        // Run detection when page loads
+        window.onload = checkMode;
     </script>
-    
-    <noscript>
-        <meta http-equiv="refresh" content="0; url=about:blank">
-    </noscript>
 </body>
 </html>
