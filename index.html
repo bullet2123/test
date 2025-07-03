@@ -3,71 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Processing Request</title>
-    <style>
-        body {
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+    <title>Incognito Redirect</title>
+    <script>
+        // Check if the page is loaded in incognito mode
+        function isIncognito() {
+            return new Promise(resolve => {
+                const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+                if (!fs) {
+                    resolve(false); // Assume not incognito if API not available
+                    return;
+                }
+                fs(window.TEMPORARY, 100, () => resolve(false), () => resolve(true));
+            });
         }
-        .container {
-            text-align: center;
-            padding: 30px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+        // Redirect to incognito if not already in incognito
+        async function checkAndRedirect() {
+            const incognito = await isIncognito();
+            if (!incognito) {
+                // Try to open in incognito mode
+                const url = window.location.href;
+                window.location.href = 'chrome://newtab-incognito';
+                
+                // Fallback if the above doesn't work
+                setTimeout(() => {
+                    window.open(url, '_blank', 'incognito=yes');
+                    document.body.innerHTML = '<h1>Please open this page in incognito mode.</h1>';
+                }, 100);
+            }
         }
-        h1 {
-            color: #333;
-        }
-        .loading {
-            margin-top: 20px;
-            display: inline-block;
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+
+        // Run the check when page loads
+        window.onload = checkAndRedirect;
+    </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Working..!</h1>
-        <div class="loading"></div>
-        <p>Processing your request securely...</p>
-    </div>
-
-    <script>
-        // Client-side attempt to mask IP (limited effectiveness)
-        document.addEventListener('DOMContentLoaded', function() {
-            // This won't hide IP from server logs but can help with some tracking
-            if (typeof window.webkitRTCPeerConnection === 'function') {
-                const rtcConfig = {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' }
-                    ]
-                };
-                const pc = new RTCPeerConnection(rtcConfig);
-                pc.createDataChannel('masking');
-                pc.createOffer().then(offer => pc.setLocalDescription(offer));
-            }
-            
-            // Additional obfuscation techniques
-            window.addEventListener('beforeunload', function() {
-                window.location.href = 'about:blank';
-            });
-        });
-    </script>
+    <h1>Working..!</h1>
 </body>
 </html>
