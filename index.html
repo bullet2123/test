@@ -1,1 +1,54 @@
-<h1>Working..!</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected Page</title>
+    <!-- Prevent search engines from tracking -->
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Security headers to prevent tracking -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self';">
+    <meta http-equiv="Referrer-Policy" content="no-referrer">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 20%;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Working..!</h1>
+    
+    <!-- No external resources that could leak IP -->
+    <script>
+        // Disable right-click to prevent some tracking attempts
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // Disable developer tools (basic protection)
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode == 73) || // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode == 74) || // Ctrl+Shift+J
+                (e.ctrlKey && e.keyCode == 85)) { // Ctrl+U
+                return false;
+            }
+        };
+    </script>
+    
+    <noscript>
+        <meta http-equiv="refresh" content="0; url=about:blank">
+    </noscript>
+</body>
+</html>
